@@ -159,6 +159,12 @@ class ElementBase {
     auto& el = static_cast<Derived &>(*this);
     setNamedOptionHelper(el, std::forward<Parameters>(parameters)...);
   }
+
+  template<typename T>
+  static constexpr bool not_in_impl = !(DerivedImpl::template has_optional_parameter<T>::value ||
+    DerivedImpl::template has_defaulted_parameter<T>::value ||
+    DerivedImpl::template has_required_parameter<T>::value);
+
   template <typename T, std::enable_if_t<DerivedImpl::template has_optional_parameter<T>::value ||
                                          DerivedImpl::template has_defaulted_parameter<T>::value ||
                                          DerivedImpl::template has_required_parameter<T>::value, bool> = true>
@@ -167,6 +173,13 @@ class ElementBase {
     auto const& el = static_cast<Derived const&>(*this);
     return el.impl_.template get<T>();
   }
+
+
+    template<typename T, std::enable_if_t<not_in_impl<T>, bool> = true>
+    T get() const {
+        auto const& el = static_cast<Derived const&>(*this);
+        return el.get_(typename T::tag{});
+    }
 
   template <typename T, std::enable_if_t<DerivedImpl::template has_optional_parameter<T>::value ||
                                          DerivedImpl::template has_defaulted_parameter<T>::value ||

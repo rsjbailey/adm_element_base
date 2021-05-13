@@ -10,6 +10,12 @@ struct Distance {
   double val{1.0};
 };
 
+struct SETag{};
+struct SomethingElse {
+    std::string s{"who knows?"};
+    using tag = SETag;
+};
+
 using PositionImpl =
     ElementImpl<Azimuth, OptionalParam<Elevation>, DefaultedParam<Distance>>;
 
@@ -31,13 +37,24 @@ class Position : public ElementBase<Position, PositionImpl> {
     impl_.set(d);
   }
 
+  void set(SomethingElse const& s) {
+      something = s;
+  }
+
   // to let the base class mess with impl_
   friend ElementBase<Position, PositionImpl>;
  private:
   PositionImpl impl_;
+  SomethingElse something;
+
+  // if not in impl, will try tag dispatch
+  SomethingElse get_(SomethingElse::tag) const {
+      return something;
+  }
 };
 
-struct Bad {};
+struct BadTag {};
+struct Bad {using tag = BadTag;};
 
 int main() {
   Position sPos;
@@ -60,4 +77,6 @@ int main() {
   assert(!sPos.has<Elevation>());
   assert(sPos.isDefault<Distance>());
   auto pos = Position{Azimuth{3.0}};
+  std::cout << sPos.get<SomethingElse>().s << "\n";
+//  sPos.get<Bad>();
 }
