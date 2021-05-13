@@ -1,0 +1,2 @@
+add_executable(adm_element_base main.cpp)
+target_compile_features(adm_element_base PUBLIC cxx_std_17)
